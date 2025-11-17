@@ -1,40 +1,51 @@
-
+-- Services
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+-- Message to show before kick
+local kickMessage = "Updating... Check Discord (Fusion Hub)"
+local countdownTime = 5 -- seconds before kick
 
-local function kickSelf()
-    local player = Players.LocalPlayer
-    if player then
-        player:Kick("Fusion Hub\n\nUpdating Please Kindly Wait Until Next Update , in discord.")
-    end
+-- Function to show countdown GUI to a player (optional)
+local function showKickGUI(player)
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "UpdateNotice"
+    screenGui.ResetOnSpawn = false
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(0.5, 0, 0.2, 0)
+    textLabel.Position = UDim2.new(0.25, 0, 0.4, 0)
+    textLabel.BackgroundTransparency = 0.5
+    textLabel.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    textLabel.TextColor3 = Color3.fromRGB(255,255,255)
+    textLabel.TextScaled = true
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.Text = kickMessage .. "\nKicking in " .. countdownTime .. " seconds..."
+    textLabel.Parent = screenGui
+
+    screenGui.Parent = player:WaitForChild("PlayerGui")
 end
 
+-- Function to kick player
+local function kickPlayer(player)
+    -- Show GUI first
+    pcall(function()
+        showKickGUI(player)
+    end)
 
-local function kickSpecificPlayer(username)
-    local player = Players:FindFirstChild(username)
-    if player then
-        player:Kick("Fusion Hub\n\nUpdating Please Kindly Wait Until Next Update , in discord.")
-        print("Kicked player: " .. username)
-    else
-        print("Player not found: " .. username)
-    end
+    -- Wait countdown
+    wait(countdownTime)
+
+    -- Kick player
+    player:Kick(kickMessage)
 end
 
-
-local function kickAllPlayers()
-    for _, player in pairs(Players:GetPlayers()) do
-        player:Kick("Fusion Hub\n\nUpdating Please Kindly Wait Until Next Update , in discord.")
-    end
-    print("Kicked all players")
+-- Kick all current players
+for _, player in ipairs(Players:GetPlayers()) do
+    kickPlayer(player)
 end
 
-
-local function kickMe()
-    local player = Players.LocalPlayer
-    if player then
-        player:Kick("Fusion Hub\n\nUpdating Please Kindly Wait Until Next Update , in discord.")
-    end
-end
-
-
--- game:GetService("Players").LocalPlayer:Kick("Fusion Hub\n\nUpdating Please Kindly Wait Until Next Update , in discord.")
+-- Kick any players who join after
+Players.PlayerAdded:Connect(function(player)
+    kickPlayer(player)
+end)
